@@ -6,11 +6,19 @@ interface StreakDisplayProps {
   currentStreak: number;
   longestStreak: number;
   totalPoints: number;
+  totalCompletions: number;
+  onViewHistory?: () => void;
 }
 
-export default function StreakDisplay({ currentStreak, longestStreak, totalPoints }: StreakDisplayProps) {
+export default function StreakDisplay({ 
+  currentStreak, 
+  longestStreak, 
+  totalPoints, 
+  totalCompletions,
+  onViewHistory 
+}: StreakDisplayProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -61,6 +69,28 @@ export default function StreakDisplay({ currentStreak, longestStreak, totalPoint
         <div className="flex items-baseline gap-2">
           <span className="text-4xl font-black text-slate-900">{totalPoints}</span>
           <span className="text-lg font-bold text-slate-400">PTS</span>
+        </div>
+      </motion.div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        onClick={onViewHistory}
+        className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm cursor-pointer hover:border-indigo-300 transition-colors group"
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-100 transition-colors">
+            <Calendar size={24} />
+          </div>
+          <span className="text-sm font-bold text-slate-400 uppercase tracking-wider">Completions</span>
+        </div>
+        <div className="flex items-baseline justify-between">
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-black text-slate-900">{totalCompletions}</span>
+            <span className="text-lg font-bold text-slate-400">DONE</span>
+          </div>
+          <span className="text-xs font-bold text-indigo-600 group-hover:underline">View History</span>
         </div>
       </motion.div>
     </div>

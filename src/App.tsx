@@ -23,7 +23,8 @@ import { Challenge, UserProfile, Completion, ChallengeCategory } from './types';
 import StreakDisplay from './components/StreakDisplay';
 import ChallengeCard from './components/ChallengeCard';
 import ChallengeModal from './components/ChallengeModal';
-import { LogOut, LogIn, Sparkles, Brain, Code, Puzzle, MessageCircle, Gamepad2, Trophy, Flame, Calendar } from 'lucide-react';
+import HistoryModal from './components/HistoryModal';
+import { LogOut, LogIn, Sparkles, Brain, Code, Puzzle, MessageCircle, Gamepad2, Trophy, Flame, Calendar, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactConfetti from 'react-confetti';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
@@ -218,8 +219,10 @@ export default function App() {
   const [completions, setCompletions] = useState<Completion[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [activeCategory, setActiveCategory] = useState<ChallengeCategory | 'all'>('all');
+  const [activeDifficulty, setActiveDifficulty] = useState<'easy' | 'medium' | 'hard' | 'all'>('all');
 
   // Test connection to Firestore
   useEffect(() => {
@@ -353,9 +356,12 @@ export default function App() {
   };
 
   const filteredChallenges = useMemo(() => {
-    if (activeCategory === 'all') return DAILY_CHALLENGES;
-    return DAILY_CHALLENGES.filter(c => c.category === activeCategory);
-  }, [activeCategory]);
+    return DAILY_CHALLENGES.filter(c => {
+      const categoryMatch = activeCategory === 'all' || c.category === activeCategory;
+      const difficultyMatch = activeDifficulty === 'all' || c.difficulty === activeDifficulty;
+      return categoryMatch && difficultyMatch;
+    });
+  }, [activeCategory, activeDifficulty]);
 
   const categories: { id: ChallengeCategory | 'all'; label: string; icon: any }[] = [
     { id: 'all', label: 'All', icon: Sparkles },
@@ -416,10 +422,17 @@ export default function App() {
             <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100">
               <Flame size={20} className="text-white" />
             </div>
-            <span className="text-xl font-black text-slate-900 tracking-tight">STREAK MASTER</span>
+            <span className="text-xl font-black text-slate-900 tracking-tight">CHALLENGE QUEST</span>
           </div>
           
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setShowHistory(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-bold text-sm hover:bg-indigo-100 transition-all"
+            >
+              <TrendingUp size={18} />
+              <span>Progress</span>
+            </button>
             <div className="hidden md:flex flex-col items-end">
               <span className="text-sm font-black text-slate-900">{user.displayName}</span>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Level 1 Challenger</span>
@@ -449,33 +462,59 @@ export default function App() {
               currentStreak={profile.currentStreak}
               longestStreak={profile.longestStreak}
               totalPoints={profile.totalPoints}
+              totalCompletions={completions.length}
+              onViewHistory={() => setShowHistory(true)}
             />
           )}
         </div>
 
         {/* Challenges Section */}
         <div>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-            <h2 className="text-2xl font-black text-slate-900">Daily Challenges</h2>
-            
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-              {categories.map((cat) => {
-                const Icon = cat.icon;
-                return (
+          <div className="flex flex-col gap-6 mb-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <h2 className="text-2xl font-black text-slate-900">Daily Challenges</h2>
+              
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+                {categories.map((cat) => {
+                  const Icon = cat.icon;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setActiveCategory(cat.id)}
+                      className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all whitespace-nowrap ${
+                        activeCategory === cat.id 
+                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' 
+                          : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'
+                      }`}
+                    >
+                      <Icon size={16} />
+                      {cat.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Difficulty:</span>
+              <div className="flex items-center gap-2">
+                {(['all', 'easy', 'medium', 'hard'] as const).map((diff) => (
                   <button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all whitespace-nowrap ${
-                      activeCategory === cat.id 
-                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' 
+                    key={diff}
+                    onClick={() => setActiveDifficulty(diff)}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all capitalize ${
+                      activeDifficulty === diff
+                        ? diff === 'easy' ? 'bg-emerald-600 text-white' :
+                          diff === 'medium' ? 'bg-amber-600 text-white' :
+                          diff === 'hard' ? 'bg-rose-600 text-white' :
+                          'bg-slate-900 text-white'
                         : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'
                     }`}
                   >
-                    <Icon size={16} />
-                    {cat.label}
+                    {diff}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
           </div>
 
@@ -499,6 +538,17 @@ export default function App() {
             challenge={selectedChallenge}
             onClose={() => setSelectedChallenge(null)}
             onComplete={handleCompleteChallenge}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* History Modal */}
+      <AnimatePresence>
+        {showHistory && (
+          <HistoryModal 
+            completions={completions}
+            profile={profile}
+            onClose={() => setShowHistory(false)}
           />
         )}
       </AnimatePresence>
