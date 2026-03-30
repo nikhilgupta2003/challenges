@@ -13,7 +13,6 @@ export interface Challenge {
 export interface UserProfile {
   uid: string;
   displayName: string | null;
-  email: string | null;
   currentStreak: number;
   longestStreak: number;
   lastCompletionDate: string | null; // ISO string

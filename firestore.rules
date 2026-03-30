@@ -10,21 +10,19 @@ service cloud.firestore {
     // Fields:
     //   - uid: string (required)
     //   - displayName: string (optional)
-    //   - email: string (optional)
     //   - currentStreak: int (required)
     //   - longestStreak: int (required)
     //   - lastCompletionDate: string (optional)
     //   - totalPoints: int (required)
     //
-    // Collection: completions
-    // Document ID: auto-generated
+    // Collection: private_profiles
+    // Document ID: userId (auth.uid)
     // Fields:
-    //   - userId: string (required)
-    //   - challengeId: string (required)
-    //   - category: string (required)
-    //   - completedAt: string (required)
-    //   - pointsEarned: int (required)
+    //   - uid: string (required)
+    //   - email: string (required)
     //
+    // Collection: completions
+    // ... existing completions ...
     // ===============================================================
 
     // ===============================================================
@@ -49,9 +47,13 @@ service cloud.firestore {
              data.currentStreak is int &&
              data.longestStreak is int &&
              data.totalPoints is int &&
-             (!('email' in data) || data.email is string) &&
              (!('displayName' in data) || data.displayName is string) &&
              (!('lastCompletionDate' in data) || data.lastCompletionDate is string);
+    }
+
+    function isValidPrivateProfile(data) {
+      return data.uid is string &&
+             data.email is string;
     }
 
     function isValidCompletion(data) {
@@ -67,13 +69,19 @@ service cloud.firestore {
     // ===============================================================
 
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
+      allow read: if isAuthenticated();
       allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.currentStreak == 0;
       allow update: if (isOwner(userId) && isValidUser(request.resource.data)) || isAdmin();
     }
 
+    match /private_profiles/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidPrivateProfile(request.resource.data);
+      allow update: if (isOwner(userId) && isValidPrivateProfile(request.resource.data)) || isAdmin();
+    }
+
     match /completions/{completionId} {
-      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow read: if isAuthenticated();
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid && isValidCompletion(request.resource.data);
       allow update, delete: if isAdmin();
     }

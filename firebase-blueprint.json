@@ -2,18 +2,27 @@
   "entities": {
     "User": {
       "title": "User Profile",
-      "description": "Stores user streak and progress information.",
+      "description": "Stores user streak and progress information. Publicly readable for leaderboard.",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
         "displayName": { "type": "string" },
-        "email": { "type": "string" },
         "currentStreak": { "type": "integer" },
         "longestStreak": { "type": "integer" },
         "lastCompletionDate": { "type": "string", "format": "date-time" },
         "totalPoints": { "type": "integer" }
       },
-      "required": ["uid", "currentStreak", "longestStreak"]
+      "required": ["uid", "currentStreak", "longestStreak", "totalPoints"]
+    },
+    "PrivateProfile": {
+      "title": "Private User Profile",
+      "description": "Stores sensitive user information like email.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" }
+      },
+      "required": ["uid", "email"]
     },
     "Completion": {
       "title": "Challenge Completion",
@@ -32,7 +41,11 @@
   "firestore": {
     "/users/{userId}": {
       "schema": "User",
-      "description": "User profile and streak data."
+      "description": "Public user profile and streak data."
+    },
+    "/private_profiles/{userId}": {
+      "schema": "PrivateProfile",
+      "description": "Private user data (e.g. email)."
     },
     "/completions/{completionId}": {
       "schema": "Completion",

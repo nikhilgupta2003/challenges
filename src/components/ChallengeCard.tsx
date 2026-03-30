@@ -35,14 +35,16 @@ export default function ChallengeCard({ challenge, isCompleted, onSelect }: Chal
         "group relative overflow-hidden rounded-2xl border p-6 transition-all duration-300 cursor-pointer",
         "hover:shadow-xl hover:-translate-y-1",
         isCompleted 
-          ? "bg-green-50/50 border-green-200" 
-          : "bg-white border-slate-200 hover:border-indigo-300"
+          ? "bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-900/30" 
+          : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700"
       )}
     >
       <div className="flex items-start justify-between">
         <div className={cn(
           "p-3 rounded-xl",
-          isCompleted ? "bg-green-100 text-green-600" : "bg-indigo-50 text-indigo-600"
+          isCompleted 
+            ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400" 
+            : "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
         )}>
           <Icon size={24} />
         </div>
@@ -56,20 +58,20 @@ export default function ChallengeCard({ challenge, isCompleted, onSelect }: Chal
         <div className="flex items-center gap-2 mb-1">
           <span className={cn(
             "text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full",
-            challenge.difficulty === 'easy' ? "bg-emerald-100 text-emerald-700" :
-            challenge.difficulty === 'medium' ? "bg-amber-100 text-amber-700" :
-            "bg-rose-100 text-rose-700"
+            challenge.difficulty === 'easy' ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400" :
+            challenge.difficulty === 'medium' ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400" :
+            "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400"
           )}>
             {challenge.difficulty}
           </span>
-          <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
+          <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500">
             {challenge.category}
           </span>
         </div>
-        <h3 className="text-lg font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
           {challenge.title}
         </h3>
-        <p className="mt-2 text-sm text-slate-500 line-clamp-2">
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
           {challenge.description}
         </p>
       </div>
