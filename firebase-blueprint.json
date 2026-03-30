@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user streak and progress information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "currentStreak": { "type": "integer" },
+        "longestStreak": { "type": "integer" },
+        "lastCompletionDate": { "type": "string", "format": "date-time" },
+        "totalPoints": { "type": "integer" }
+      },
+      "required": ["uid", "currentStreak", "longestStreak"]
+    },
+    "Completion": {
+      "title": "Challenge Completion",
+      "description": "Records a user completing a specific challenge.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "challengeId": { "type": "string" },
+        "category": { "type": "string" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "pointsEarned": { "type": "integer" }
+      },
+      "required": ["userId", "challengeId", "completedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile and streak data."
+    },
+    "/completions/{completionId}": {
+      "schema": "Completion",
+      "description": "History of challenge completions."
+    }
+  }
+}

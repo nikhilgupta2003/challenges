@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (auth.uid)
+    // Fields:
+    //   - uid: string (required)
+    //   - displayName: string (optional)
+    //   - email: string (optional)
+    //   - currentStreak: int (required)
+    //   - longestStreak: int (required)
+    //   - lastCompletionDate: string (optional)
+    //   - totalPoints: int (required)
+    //
+    // Collection: completions
+    // Document ID: auto-generated
+    // Fields:
+    //   - userId: string (required)
+    //   - challengeId: string (required)
+    //   - category: string (required)
+    //   - completedAt: string (required)
+    //   - pointsEarned: int (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "nikhilgupta.mkg@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.uid is string &&
+             data.currentStreak is int &&
+             data.longestStreak is int &&
+             data.totalPoints is int &&
+             (!('email' in data) || data.email is string) &&
+             (!('displayName' in data) || data.displayName is string) &&
+             (!('lastCompletionDate' in data) || data.lastCompletionDate is string);
+    }
+
+    function isValidCompletion(data) {
+      return data.userId is string &&
+             data.challengeId is string &&
+             data.category is string &&
+             data.completedAt is string &&
+             data.pointsEarned is int;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.currentStreak == 0;
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data)) || isAdmin();
+    }
+
+    match /completions/{completionId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid && isValidCompletion(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+  }
+}
